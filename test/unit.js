@@ -45,4 +45,27 @@ describe('Sjotorp Image', function() {
       });
     });
   });
+
+  describe('addStripes', function() {
+    var defaultColor = SjotorpImage.generateColor('seed', true);
+    it('should addStripes to big images', function() {
+      SjotorpImage.generateImage(20, 40, defaultColor, function(error, jpgData) {
+        assert.equal(null, error);
+        assert.equal(20, jpgData.width);
+        assert.equal(40, jpgData.height);
+        assert.equal(636, jpgData.data.length);
+        assert.equal(255, jpgData.data[0]);
+        assert.equal(0, jpgData.data[612]);
+        var stripeColor = SjotorpImage.generateColor('seed2', true);
+        SjotorpImage.addStripes(jpgData.data, stripeColor, function(error, newData) {
+          assert.equal(null, error);
+          assert.equal(jpgData.width, newData.width);
+          assert.equal(jpgData.height, newData.height);
+          assert.equal(744, newData.data.length);
+          assert.equal(255, newData.data[0]);
+          assert.equal(245, newData.data[612]);
+        });
+      });
+    });
+  });
 });

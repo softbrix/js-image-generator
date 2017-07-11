@@ -2,6 +2,8 @@ var Buffer = require('buffer').Buffer;
 var jpeg = require('jpeg-js');
 var seedRandom = require('seed-random');
 
+const CHANNEL_MAX = 255;
+
 /**
 * Generate a color based on a random seed.
 * Alpha will be default to 255 if not specified to be generated as well.
@@ -11,13 +13,13 @@ var seedRandom = require('seed-random');
 function generateColor(seed, addAlpha) {
   var random = seedRandom(seed);
 
-  var newValue = () => { return Math.floor(random() * 256); };
+  var newValue = () => { return Math.floor(random() * CHANNEL_MAX); };
 
   var color = {
     r: newValue(),
     g: newValue(),
     b: newValue(),
-    a: 255
+    a: CHANNEL_MAX
   }
   if(addAlpha) {
     color.a = newValue();
@@ -66,3 +68,27 @@ exports.generateImage = function(width, height, color, callback) {
         callback(null,jpegImageData);
     }
 };
+
+exports.addStripes = function(jpegImageData, color, callback) {
+  if(color === undefined) {
+    color = generateColor();
+  }
+  var rawImageData = jpeg.decode(jpegImageData);
+  var i = 0;
+  for (var row = 0; row < rawImageData.height; row += 2) {
+    for(var col = 0; col < rawImageData.width; col += 1) {
+      var i = (row * rawImageData.width + col) * 4;  // pixel
+      // RGBA
+      rawImageData.data[i++] = color.r;
+      rawImageData.data[i++] = color.g;
+      rawImageData.data[i++] = color.b;
+      rawImageData.data[i++] = color.a;
+    }
+  }
+  var quality = 1;
+  var jpegImageData = jpeg.encode(rawImageData, quality);
+
+  if(jpegImageData){
+      callback(null,jpegImageData);
+  }
+}
